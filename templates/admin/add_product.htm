@@ -1,0 +1,85 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block content %}
+<h2 class="mb-4"><i class="fas fa-plus"></i> Adicionar Produto</h2>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form method="POST" enctype="multipart/form-data">
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label class="form-label">Nome da Conta *</label>
+                    <input type="text" name="name" class="form-control" required placeholder="Ex: Conta Free Fire Nível 70">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Categoria</label>
+                    <select name="category_id" class="form-select">
+                        <option value="">Selecione...</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}">{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Descrição *</label>
+                    <textarea name="description" class="form-control" rows="4" required placeholder="Descreva a conta detalhadamente..."></textarea>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Preço (R$) *</label>
+                    <input type="number" name="price" class="form-control" step="0.01" required placeholder="0.00">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Preço Original (opcional)</label>
+                    <input type="number" name="original_price" class="form-control" step="0.01" placeholder="Para mostrar desconto">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Nível</label>
+                    <input type="number" name="level" class="form-control" placeholder="Ex: 70">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Diamantes</label>
+                    <input type="number" name="diamonds" class="form-control" placeholder="Ex: 500">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Quantidade de Skins</label>
+                    <input type="number" name="skins_count" class="form-control" placeholder="Ex: 50">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Rank</label>
+                    <select name="rank" class="form-select">
+                        <option value="">Selecione...</option>
+                        <option value="Bronze">Bronze</option>
+                        <option value="Prata">Prata</option>
+                        <option value="Ouro">Ouro</option>
+                        <option value="Platina">Platina</option>
+                        <option value="Diamante">Diamante</option>
+                        <option value="Mestre">Mestre</option>
+                        <option value="Grandmaster">Grandmaster</option>
+                        <option value="Desafiante">Desafiante</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Imagem</label>
+                    <input type="file" name="image" class="form-control" accept="image/*">
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Personagens</label>
+                    <input type="text" name="characters" class="form-control" placeholder="Ex: Alok, Kelly, Chrono, K">
+                </div>
+                <div class="col-12">
+                    <div class="form-check">
+                        <input type="checkbox" name="is_featured" class="form-check-input" id="featured">
+                        <label class="form-check-label" for="featured">Destacar este produto</label>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-warning btn-lg">
+                        <i class="fas fa-save"></i> Salvar Produto
+                    </button>
+                    <a href="{{ url_for('admin_products') }}" class="btn btn-secondary btn-lg">Cancelar</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

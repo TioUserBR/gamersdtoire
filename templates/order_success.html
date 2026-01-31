@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Pedido Confirmado - FF Store{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center">
+        <div class="mb-4">
+            <i class="fas fa-check-circle fa-5x text-success"></i>
+        </div>
+        <h1 class="text-success">Pedido Realizado!</h1>
+        <p class="lead">Seu pedido #{{ order.id }} foi registrado com sucesso.</p>
+
+        <div class="card shadow-sm mx-auto" style="max-width: 500px;">
+            <div class="card-body">
+                <h5>Detalhes do Pedido</h5>
+                <table class="table table-borderless">
+                    <tr>
+                        <td><strong>Número:</strong></td>
+                        <td>#{{ order.id }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total:</strong></td>
+                        <td class="text-success fw-bold">R$ {{ "%.2f"|format(order.total) }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Pagamento:</strong></td>
+                        <td>{{ order.payment_method.upper() }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Status:</strong></td>
+                        <td><span class="badge bg-warning">{{ order.status.title() }}</span></td>
+                    </tr>
+                </table>
+
+                {% if settings and settings.pix_key %}
+                <div class="alert alert-warning">
+                    <strong><i class="fas fa-qrcode"></i> Pague via PIX:</strong><br>
+                    {{ settings.pix_key }}
+                </div>
+                {% endif %}
+
+                {% if settings and settings.whatsapp %}
+                <a href="https://wa.me/{{ settings.whatsapp }}?text=Olá! Fiz o pedido %23{{ order.id }} no valor de R$ {{ "%.2f"|format(order.total) }}. Segue comprovante:" 
+                   class="btn btn-success btn-lg w-100 mb-3" target="_blank">
+                    <i class="fab fa-whatsapp"></i> Enviar Comprovante no WhatsApp
+                </a>
+                {% endif %}
+
+                <a href="{{ url_for('index') }}" class="btn btn-outline-dark">
+                    <i class="fas fa-home"></i> Voltar ao Início
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

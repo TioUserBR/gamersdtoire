@@ -1,0 +1,39 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block content %}
+<h2 class="mb-4"><i class="fas fa-cog"></i> Configurações</h2>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form method="POST">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Nome do Site</label>
+                    <input type="text" name="site_name" class="form-control" value="{{ settings.site_name or '' }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Chave PIX</label>
+                    <input type="text" name="pix_key" class="form-control" value="{{ settings.pix_key or '' }}" placeholder="email@exemplo.com ou CPF">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">WhatsApp (com código do país)</label>
+                    <input type="text" name="whatsapp" class="form-control" value="{{ settings.whatsapp or '' }}" placeholder="5511999999999">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Instagram</label>
+                    <input type="text" name="instagram" class="form-control" value="{{ settings.instagram or '' }}" placeholder="@seuperfil">
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Texto do Banner</label>
+                    <input type="text" name="banner_text" class="form-control" value="{{ settings.banner_text or '' }}">
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-warning btn-lg">
+                        <i class="fas fa-save"></i> Salvar Configurações
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Meus Pedidos - FF Store{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4"><i class="fas fa-box"></i> Meus Pedidos</h1>
+
+    {% if orders %}
+    <div class="table-responsive">
+        <table class="table table-hover shadow-sm">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Data</th>
+                    <th>Itens</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td><strong>{{ order.id }}</strong></td>
+                    <td>{{ order.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td>{{ order.items|length }} produto(s)</td>
+                    <td class="text-success fw-bold">R$ {{ "%.2f"|format(order.total) }}</td>
+                    <td>
+                        {% if order.status == 'pendente' %}
+                            <span class="badge bg-warning">Pendente</span>
+                        {% elif order.status == 'pago' %}
+                            <span class="badge bg-success">Pago</span>
+                        {% elif order.status == 'entregue' %}
+                            <span class="badge bg-primary">Entregue</span>
+                        {% else %}
+                            <span class="badge bg-danger">Cancelado</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-box-open fa-5x text-muted mb-4"></i>
+        <h3>Você ainda não fez nenhum pedido</h3>
+        <a href="{{ url_for('index') }}" class="btn btn-warning btn-lg mt-3">
+            <i class="fas fa-shopping-bag"></i> Ver Produtos
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

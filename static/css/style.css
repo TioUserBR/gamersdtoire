@@ -1,0 +1,124 @@
+/* ============ VARIÁVEIS ============ */
+:root {
+    --primary-color: #FF6B00;
+    --secondary-color: #1a1a2e;
+    --accent-color: #ffc107;
+}
+
+/* ============ GLOBAL ============ */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ============ HERO BANNER ============ */
+.bg-gradient-fire {
+    background: linear-gradient(135deg, #FF6B00 0%, #FF8C00 50%, #FFD700 100%);
+}
+
+.hero-banner {
+    background: linear-gradient(135deg, rgba(26,26,46,0.9), rgba(22,33,62,0.9)), 
+                url('https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1920') center/cover;
+    padding: 80px 0;
+}
+
+/* ============ PRODUCT CARDS ============ */
+.product-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 15px;
+    overflow: hidden;
+    border: none;
+}
+
+.product-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+}
+
+.product-card .card-img-top {
+    height: 200px;
+    object-fit: cover;
+}
+
+.product-info .badge {
+    font-size: 0.7rem;
+    margin-right: 3px;
+    margin-bottom: 3px;
+}
+
+/* ============ BUTTONS ============ */
+.btn-warning {
+    background: linear-gradient(135deg, #FF6B00, #FFD700);
+    border: none;
+    color: #000;
+    font-weight: bold;
+}
+
+.btn-warning:hover {
+    background: linear-gradient(135deg, #FF8C00, #FFEA00);
+    transform: scale(1.02);
+}
+
+/* ============ NAVBAR ============ */
+.navbar {
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+}
+
+/* ============ FOOTER ============ */
+footer {
+    background: linear-gradient(180deg, #1a1a2e, #16213e);
+}
+
+footer a:hover {
+    color: var(--accent-color) !important;
+}
+
+/* ============ CARDS GERAIS ============ */
+.card {
+    border-radius: 15px;
+    border: none;
+}
+
+/* ============ RESPONSIVO ============ */
+@media (max-width: 768px) {
+    .hero-banner h1 {
+        font-size: 2rem;
+    }
+    
+    .product-card .card-img-top {
+        height: 150px;
+    }
+}
+
+/* ============ ANIMAÇÕES ============ */
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.badge-warning {
+    animation: pulse 2s infinite;
+}
+
+/* ============ PRICE BOX ============ */
+.price-box {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-left: 4px solid var(--primary-color);
+}
+
+/* ============ SCROLLBAR ============ */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 5px;
+}

@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }} - FF Store{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Início</a></li>
+            {% if product.category %}
+            <li class="breadcrumb-item"><a href="{{ url_for('category', id=product.category.id) }}">{{ product.category.name }}</a></li>
+            {% endif %}
+            <li class="breadcrumb-item active">{{ product.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card shadow">
+                {% if product.image %}
+                <img src="{{ url_for('static', filename='images/products/' + product.image) }}" class="card-img-top" alt="{{ product.name }}">
+                {% else %}
+                <img src="https://via.placeholder.com/600x400/FF6B00/FFFFFF?text=FREE+FIRE" class="card-img-top" alt="{{ product.name }}">
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="card shadow p-4">
+                <h1 class="h2">{{ product.name }}</h1>
+                
+                <div class="d-flex flex-wrap gap-2 my-3">
+                    {% if product.level %}
+                    <span class="badge bg-secondary fs-6"><i class="fas fa-level-up-alt"></i> Nível {{ product.level }}</span>
+                    {% endif %}
+                    {% if product.diamonds %}
+                    <span class="badge bg-info fs-6"><i class="fas fa-gem"></i> {{ product.diamonds }} Diamantes</span>
+                    {% endif %}
+                    {% if product.skins_count %}
+                    <span class="badge bg-primary fs-6"><i class="fas fa-tshirt"></i> {{ product.skins_count }} Skins</span>
+                    {% endif %}
+                    {% if product.rank %}
+                    <span class="badge bg-danger fs-6"><i class="fas fa-trophy"></i> {{ product.rank }}</span>
+                    {% endif %}
+                </div>
+
+                {% if product.characters %}
+                <div class="mb-3">
+                    <strong>Personagens:</strong>
+                    <p class="mb-0">{{ product.characters }}</p>
+                </div>
+                {% endif %}
+
+                <div class="price-box bg-light p-3 rounded mb-3">
+                    {% if product.original_price %}
+                    <span class="text-muted text-decoration-line-through fs-5">R$ {{ "%.2f"|format(product.original_price) }}</span>
+                    <span class="badge bg-success ms-2">{{ ((1 - product.price/product.original_price) * 100)|int }}% OFF</span>
+                    {% endif %}
+                    <div class="display-5 text-success fw-bold">R$ {{ "%.2f"|format(product.price) }}</div>
+                </div>
+
+                <div class="description mb-4">
+                    <h5>Descrição</h5>
+                    <p>{{ product.description }}</p>
+                </div>
+
+                {% if product.is_available %}
+                <a href="{{ url_for('add_to_cart', product_id=product.id) }}" class="btn btn-warning btn-lg w-100 mb-3">
+                    <i class="fas fa-cart-plus"></i> Adicionar ao Carrinho
+                </a>
+                {% else %}
+                <button class="btn btn-secondary btn-lg w-100 mb-3" disabled>
+                    <i class="fas fa-times"></i> Produto Vendido
+                </button>
+                {% endif %}
+
+                <div class="security-info">
+                    <div class="d-flex align-items-center gap-2 text-muted">
+                        <i class="fas fa-shield-alt text-success"></i>
+                        <small>Compra 100% segura e garantida</small>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 text-muted">
+                        <i class="fas fa-clock text-warning"></i>
+                        <small>Entrega em até 30 minutos após confirmação</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if related %}
+    <section class="mt-5">
+        <h3>Produtos Relacionados</h3>
+        <div class="row g-4">
+            {% for item in related %}
+            <div class="col-md-3">
+                <div class="card product-card h-100 shadow-sm">
+                    {% if item.image %}
+                    <img src="{{ url_for('static', filename='images/products/' + item.image) }}" class="card-img-top" alt="{{ item.name }}">
+                    {% else %}
+                    <img src="https://via.placeholder.com/300x200/FF6B00/FFFFFF?text=FREE+FIRE" class="card-img-top" alt="{{ item.name }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h6 class="card-title">{{ item.name }}</h6>
+                        <span class="h5 text-success">R$ {{ "%.2f"|format(item.price) }}</span>
+                    </div>
+                    <div class="card-footer bg-white border-0">
+                        <a href="{{ url_for('product_detail', id=item.id) }}" class="btn btn-outline-dark btn-sm w-100">Ver</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-gamepad"></i> Produtos</h2>
+    <a href="{{ url_for('admin_add_product') }}" class="btn btn-warning">
+        <i class="fas fa-plus"></i> Novo Produto
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Imagem</th>
+                        <th>Nome</th>
+                        <th>Preço</th>
+                        <th>Status</th>
+                        <th>Views</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td>{{ product.id }}</td>
+                        <td>
+                            {% if product.image %}
+                            <img src="{{ url_for('static', filename='images/products/' + product.image) }}" width="50" height="50" class="rounded" style="object-fit: cover;">
+                            {% else %}
+                            <img src="https://via.placeholder.com/50/FF6B00/FFFFFF?text=FF" class="rounded">
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong>{{ product.name }}</strong>
+                            {% if product.is_featured %}<span class="badge bg-warning">Destaque</span>{% endif %}
+                        </td>
+                        <td class="text-success">R$ {{ "%.2f"|format(product.price) }}</td>
+                        <td>
+                            {% if product.is_available %}
+                                <span class="badge bg-success">Disponível</span>
+                            {% else %}
+                                <span class="badge bg-danger">Vendido</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ product.views }}</td>
+                        <td>
+                            <a href="{{ url_for('admin_edit_product', id=product.id) }}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{{ url_for('admin_delete_product', id=product.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza que deseja excluir?')">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
