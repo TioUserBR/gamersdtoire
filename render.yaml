@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: freefire-store
+    runtime: python
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.6
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FLASK_ENV
+        value: production
