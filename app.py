@@ -1,16 +1,25 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
-from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from functools import wraps
-from models import db, User, Product, Category, CartItem, Order, OrderItem, SiteSettings
-from config import Config
-import os
 from datetime import datetime
+import os
 
+# ==================== CONFIGURAÇÃO ====================
 app = Flask(__name__)
-app.config.from_object(Config)
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'sua-chave-secreta-super-segura-2024')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///freefire_store.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['UPLOAD_FOLDER'] = 'static/images/products'
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
-db.init_app(app)
+# Fix para PostgreSQL no Render
+if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres://'):
+    app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace('postgres://', 'postgresql://', 1)
+
+db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
@@ -19,6 +28,84 @@ login_manager.login_message = 'Por favor, faça login para acessar esta página.
 # Criar pasta de uploads
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+# ==================== MODELS ====================
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(256), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    orders = db.relationship('Order', backref='user', lazy=True)
+    
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+    
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+class Category(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    products = db.relationship('Product', backref='category', lazy=True)
+
+class Product(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    original_price = db.Column(db.Float)
+    image = db.Column(db.String(500))
+    level = db.Column(db.Integer)
+    diamonds = db.Column(db.Integer, default=0)
+    skins_count = db.Column(db.Integer, default=0)
+    characters = db.Column(db.String(500))
+    rank = db.Column(db.String(50))
+    is_available = db.Column(db.Boolean, default=True)
+    is_featured = db.Column(db.Boolean, default=False)
+    category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    views = db.Column(db.Integer, default=0)
+
+class CartItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    quantity = db.Column(db.Integer, default=1)
+    product = db.relationship('Product')
+    user = db.relationship('User')
+
+class Order(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    total = db.Column(db.Float, nullable=False)
+    status = db.Column(db.String(50), default='pendente')
+    payment_method = db.Column(db.String(50))
+    customer_name = db.Column(db.String(200))
+    customer_email = db.Column(db.String(200))
+    customer_phone = db.Column(db.String(50))
+    notes = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    items = db.relationship('OrderItem', backref='order', lazy=True)
+
+class OrderItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    product_name = db.Column(db.String(200))
+    price = db.Column(db.Float, nullable=False)
+    quantity = db.Column(db.Integer, default=1)
+    product = db.relationship('Product')
+
+class SiteSettings(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    site_name = db.Column(db.String(200), default='FF Store')
+    whatsapp = db.Column(db.String(50))
+    instagram = db.Column(db.String(100))
+    pix_key = db.Column(db.String(200))
+    banner_text = db.Column(db.String(500))
+
+# ==================== LOGIN MANAGER ====================
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -43,7 +130,6 @@ def cart_count():
     return dict(cart_count=count)
 
 # ==================== ROTAS PÚBLICAS ====================
-
 @app.route('/')
 def index():
     featured_products = Product.query.filter_by(is_available=True, is_featured=True).limit(6).all()
@@ -82,7 +168,6 @@ def search():
     return render_template('index.html', products=products, categories=categories, search_query=query)
 
 # ==================== AUTENTICAÇÃO ====================
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
@@ -145,7 +230,6 @@ def logout():
     return redirect(url_for('index'))
 
 # ==================== CARRINHO ====================
-
 @app.route('/carrinho')
 def cart():
     if current_user.is_authenticated:
@@ -207,7 +291,6 @@ def remove_from_cart(product_id):
     return redirect(url_for('cart'))
 
 # ==================== CHECKOUT ====================
-
 @app.route('/checkout', methods=['GET', 'POST'])
 def checkout():
     if current_user.is_authenticated:
@@ -235,7 +318,6 @@ def checkout():
         payment = request.form.get('payment_method')
         notes = request.form.get('notes')
         
-        # Criar pedido
         order = Order(
             user_id=current_user.id if current_user.is_authenticated else 0,
             total=total,
@@ -248,7 +330,6 @@ def checkout():
         db.session.add(order)
         db.session.flush()
         
-        # Adicionar itens
         if current_user.is_authenticated:
             for item in cart_items:
                 order_item = OrderItem(
@@ -259,7 +340,6 @@ def checkout():
                     quantity=item.quantity
                 )
                 db.session.add(order_item)
-                # Marcar produto como indisponível (conta vendida)
                 item.product.is_available = False
                 db.session.delete(item)
         else:
@@ -294,7 +374,6 @@ def my_orders():
     return render_template('my_orders.html', orders=orders)
 
 # ==================== PAINEL ADMIN ====================
-
 @app.route('/admin')
 @login_required
 @admin_required
@@ -305,8 +384,7 @@ def admin_dashboard():
     pending_orders = Order.query.filter_by(status='pendente').count()
     total_users = User.query.count()
     
-    # Vendas do mês
-    from datetime import datetime, timedelta
+    from datetime import timedelta
     start_of_month = datetime.now().replace(day=1, hour=0, minute=0, second=0)
     monthly_sales = db.session.query(db.func.sum(Order.total)).filter(
         Order.created_at >= start_of_month,
@@ -324,7 +402,6 @@ def admin_dashboard():
                          monthly_sales=monthly_sales,
                          recent_orders=recent_orders)
 
-# Produtos Admin
 @app.route('/admin/produtos')
 @login_required
 @admin_required
@@ -351,7 +428,6 @@ def admin_add_product():
         category_id = request.form.get('category_id')
         is_featured = 'is_featured' in request.form
         
-        # Upload de imagem
         image_filename = None
         if 'image' in request.files:
             file = request.files['image']
@@ -430,7 +506,6 @@ def admin_delete_product(id):
     flash('Produto excluído com sucesso!', 'success')
     return redirect(url_for('admin_products'))
 
-# Categorias Admin
 @app.route('/admin/categorias', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -456,7 +531,6 @@ def admin_delete_category(id):
     flash('Categoria excluída!', 'success')
     return redirect(url_for('admin_categories'))
 
-# Pedidos Admin
 @app.route('/admin/pedidos')
 @login_required
 @admin_required
@@ -482,7 +556,6 @@ def admin_update_order_status(id):
     flash(f'Status do pedido atualizado para: {new_status}', 'success')
     return redirect(url_for('admin_order_detail', id=id))
 
-# Usuários Admin
 @app.route('/admin/usuarios')
 @login_required
 @admin_required
@@ -501,7 +574,6 @@ def admin_toggle_admin(id):
         flash(f'Permissões de {user.username} atualizadas!', 'success')
     return redirect(url_for('admin_users'))
 
-# Configurações Admin
 @app.route('/admin/configuracoes', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -524,12 +596,10 @@ def admin_settings():
     return render_template('admin/settings.html', settings=settings)
 
 # ==================== INICIALIZAÇÃO ====================
-
 def create_tables():
     with app.app_context():
         db.create_all()
         
-        # Criar admin padrão se não existir
         admin = User.query.filter_by(email='admin@admin.com').first()
         if not admin:
             admin = User(
@@ -540,7 +610,6 @@ def create_tables():
             admin.set_password('admin123')
             db.session.add(admin)
         
-        # Criar configurações padrão
         settings = SiteSettings.query.first()
         if not settings:
             settings = SiteSettings(
@@ -550,7 +619,6 @@ def create_tables():
             )
             db.session.add(settings)
         
-        # Criar categorias padrão
         if not Category.query.first():
             categories = ['Contas Bronze', 'Contas Prata', 'Contas Ouro', 'Contas Diamante', 'Contas Mestre', 'Contas Grandmaster']
             for cat_name in categories:
@@ -558,6 +626,8 @@ def create_tables():
         
         db.session.commit()
 
+# Criar tabelas na inicialização
+create_tables()
+
 if __name__ == '__main__':
-    create_tables()
     app.run(debug=True)
