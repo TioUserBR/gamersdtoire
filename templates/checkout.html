@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout - FF Store{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4"><i class="fas fa-credit-card"></i> Finalizar Compra</h1>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Dados para Contato</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('checkout') }}">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Nome Completo *</label>
+                                <input type="text" name="name" class="form-control" required 
+                                       value="{{ current_user.username if current_user.is_authenticated else '' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email *</label>
+                                <input type="email" name="email" class="form-control" required
+                                       value="{{ current_user.email if current_user.is_authenticated else '' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">WhatsApp *</label>
+                                <input type="tel" name="phone" class="form-control" required placeholder="(11) 99999-9999">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Forma de Pagamento *</label>
+                                <select name="payment_method" class="form-select" required>
+                                    <option value="pix">PIX (Aprovação Imediata)</option>
+                                    <option value="transferencia">Transferência Bancária</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Observações (opcional)</label>
+                                <textarea name="notes" class="form-control" rows="3" placeholder="Alguma informação adicional?"></textarea>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h5><i class="fas fa-qrcode text-success"></i> Pagamento via PIX</h5>
+                        {% if settings and settings.pix_key %}
+                        <div class="alert alert-success">
+                            <strong>Chave PIX:</strong> {{ settings.pix_key }}
+                        </div>
+                        {% endif %}
+                        <p class="text-muted">Após efetuar o pagamento, clique em "Confirmar Pedido" e envie o comprovante pelo WhatsApp.</p>
+
+                        <button type="submit" class="btn btn-success btn-lg w-100 mt-3">
+                            <i class="fas fa-check"></i> Confirmar Pedido - R$ {{ "%.2f"|format(total) }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-shopping-bag"></i> Seu Pedido</h5>
+                </div>
+                <div class="card-body">
+                    {% for item in cart_items %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            {% if current_user.is_authenticated %}
+                                <strong>{{ item.product.name }}</strong>
+                            {% else %}
+                                <strong>{{ item.product.name }}</strong>
+                            {% endif %}
+                        </div>
+                        <span class="text-success">
+                            {% if current_user.is_authenticated %}
+                                R$ {{ "%.2f"|format(item.product.price) }}
+                            {% else %}
+                                R$ {{ "%.2f"|format(item.product.price) }}
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% endfor %}
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <strong class="fs-5">Total</strong>
+                        <strong class="fs-4 text-success">R$ {{ "%.2f"|format(total) }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mt-3">
+                <div class="card-body">
+                    <h6><i class="fas fa-shield-alt text-success"></i> Compra Segura</h6>
+                    <small class="text-muted">Seus dados estão protegidos. Após a confirmação do pagamento, você receberá os dados da conta via WhatsApp.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
